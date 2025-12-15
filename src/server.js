@@ -31,5 +31,6 @@ async function startServer() {
     process.exit(1);
   }
 }
+app.use("/api/v1", require("./routes/bag"));
 
 startServer();
