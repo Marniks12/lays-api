@@ -6,6 +6,9 @@ const mongoose = require("mongoose");
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/api/v1/design", require("./routes/design"));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // routes
 app.use("/api/v1", require("./routes/auth"));

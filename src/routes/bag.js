@@ -2,46 +2,53 @@ const express = require("express");
 const Bag = require("../models/Bag");
 const auth = require("../middleware/authMiddleware");
 
-
 const router = express.Router();
 
 /**
- * POST /bag
- * create a bag (logged in user)
+ * GET all bags
  */
-router.post("/bag", auth, async (req, res) => {
-  try {
-    const bag = await Bag.create({
-      ...req.body,
-      user: req.user.id
-    });
-    res.json(bag);
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: "Bag creation failed" });
-  }
-});
-
-/**
- * GET /bag
- * get all bags
- */
-router.get("/bag", async (req, res) => {
-  const bags = await Bag.find().populate("user", "email firstName");
+router.get("/bag", auth, async (req, res) => {
+  const bags = await Bag.find();
   res.json(bags);
 });
 
 /**
- * DELETE /bag/:id
- * admin only
+ * POST create bag
+ */
+router.post("/bag", auth, async (req, res) => {
+  const bag = await Bag.create({
+    name: req.body.name,
+  });
+
+  res.json(bag);
+});
+
+// 👍 VOTE OP DESIGN
+router.post("/:id/vote", auth, async (req, res) => {
+  try {
+    const design = await Design.findById(req.params.id);
+
+    if (!design) {
+      return res.status(404).json({ message: "Design not found" });
+    }
+
+    design.votes += 1;
+    await design.save();
+
+    res.json({ votes: design.votes });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Voting failed" });
+  }
+});
+
+
+/**
+ * DELETE bag
  */
 router.delete("/bag/:id", auth, async (req, res) => {
-  if (req.user.role !== "admin") {
-    return res.sendStatus(403);
-  }
-
   await Bag.findByIdAndDelete(req.params.id);
-  res.sendStatus(204);
+  res.json({ success: true });
 });
 
 module.exports = router;
